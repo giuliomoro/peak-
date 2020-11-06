@@ -4,6 +4,7 @@ typedef struct peakctl
     t_sample c_x;
     t_sample c_coef;
 } t_peakctl;
+
 typedef struct peak_tilde
 {
     t_object x_obj;
