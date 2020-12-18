@@ -47,7 +47,7 @@ endif
 CFLAGS += $(OPT_CFLAGS)
 
 
-.PHONY = install libdir_install single_install install-doc install-exec clean dist etags
+.PHONY = install libdir_install clean dist etags
 
 all: $(SOURCES:.c=.$(EXTENSION))
 
@@ -72,28 +72,9 @@ install: libdir_install
 
 # The meta and help files are explicitly installed to make sure they are
 # actually there.  Those files are not optional, then need to be there.
-libdir_install: $(SOURCES:.c=.$(EXTENSION)) install-doc install-exec
-	install -d $(objectsdir)/$(LIBRARY_NAME)
-	install -m644 -p $(LIBRARY_NAME)-meta.pd $(objectsdir)/$(LIBRARY_NAME)
-	install -m644 -p $(SOURCES:.c=.$(EXTENSION)) $(objectsdir)/$(LIBRARY_NAME)
-
-# install library linked as single binary
-single_install: $(LIBRARY_NAME) install-doc install-exec
-	install -d $(objectsdir)/$(LIBRARY_NAME)
-	install -m644 -p $(LIBRARY_NAME).$(EXTENSION) $(objectsdir)/$(LIBRARY_NAME)
-
-install-doc:
-	install -d $(objectsdir)/$(LIBRARY_NAME)
-#	install -m644 -p $(SOURCES:.c=-help.pd) $(objectsdir)/$(LIBRARY_NAME)
-	install -m644 -p $(wildcard *.pd) $(objectsdir)/$(LIBRARY_NAME)
-	install -m644 -p README $(objectsdir)/$(LIBRARY_NAME)/README.txt
-	install -m644 -p VERSION $(objectsdir)/$(LIBRARY_NAME)/VERSION
-	install -m644 -p CHANGES $(objectsdir)/$(LIBRARY_NAME)/CHANGES.txt
-
-install-exec:
-	install -d $(objectsdir)/$(LIBRARY_NAME)
-	install -m644 -p $(wildcard *.pd) $(objectsdir)/$(LIBRARY_NAME)
-
+libdir_install: $(SOURCES:.c=.$(EXTENSION))
+	install -d $(objectsdir)/
+	install -m644 -p $(SOURCES:.c=.$(EXTENSION)) $(objectsdir)
 
 clean:
 	-rm -f -- $(SOURCES:.c=.o)

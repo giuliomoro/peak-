@@ -8,11 +8,9 @@ typedef struct peakctl
 typedef struct peak_tilde
 {
     t_object x_obj;
-    t_float x_sr;
-    t_float x_hz;
     t_peakctl x_cspace;
     t_peakctl *x_ctl;
-    t_float x_f;
+    t_float x_f; // dummy, I think
 } t_peak_tilde;
 t_class *peak_tilde_class;
 static void peak_tilde_ft1(t_peak_tilde *x, t_floatarg f);
@@ -21,7 +19,6 @@ static void *peak_tilde_new(t_floatarg f)
     t_peak_tilde *x = (t_peak_tilde *)pd_new(peak_tilde_class);
     inlet_new(&x->x_obj, &x->x_obj.ob_pd, gensym("float"), gensym("ft1"));
     outlet_new(&x->x_obj, &s_signal);
-    x->x_sr = 44100;
     x->x_ctl = &x->x_cspace;
     x->x_cspace.c_x = 0;
     peak_tilde_ft1(x, f);
@@ -30,17 +27,11 @@ static void *peak_tilde_new(t_floatarg f)
 }
 static void peak_tilde_ft1(t_peak_tilde *x, t_floatarg f)
 {
-    if (f < 0) f = 0;
-    x->x_hz = f;
-    x->x_ctl->c_coef = f * (2 * 3.14159) / x->x_sr;
-    if (x->x_ctl->c_coef > 1)
-        x->x_ctl->c_coef = 1;
-    else if (x->x_ctl->c_coef < 0)
-        x->x_ctl->c_coef = 0;
+    x->x_ctl->c_coef = f;
 }
 static void peak_tilde_clear(t_peak_tilde *x, t_floatarg q)
 {
-    x->x_cspace.c_x = 0;
+    x->x_cspace.c_x = q;
 }
 static t_int *peak_tilde_perform(t_int *w)
 {
@@ -51,9 +42,14 @@ static t_int *peak_tilde_perform(t_int *w)
     int i;
     t_sample last = c->c_x;
     t_sample coef = c->c_coef;
-    t_sample feedback = 1 - coef;
-    for (i = 0; i < n; i++)
-        last = *out++ = coef * *in++ + feedback * last;
+    for (i = 0; i < n; i++) {
+        float input = *in++;
+	if(input > last)
+            last = input;
+	else
+	    last *= coef;
+        *out++ = last;
+    }
     if (PD_BIGORSMALL(last))
         last = 0;
     c->c_x = last;
@@ -61,8 +57,6 @@ static t_int *peak_tilde_perform(t_int *w)
 }
 static void peak_tilde_dsp(t_peak_tilde *x, t_signal **sp)
 {
-    x->x_sr = sp[0]->s_sr;
-    peak_tilde_ft1(x,  x->x_hz);
     dsp_add(peak_tilde_perform, 4,
         sp[0]->s_vec, sp[1]->s_vec,
             x->x_ctl, sp[0]->s_n);
@@ -78,4 +72,3 @@ void peak_tilde_setup(void)
         gensym("ft1"), A_FLOAT, 0);
     class_addmethod(peak_tilde_class, (t_method)peak_tilde_clear, gensym("clear"), 0);
 }
-
