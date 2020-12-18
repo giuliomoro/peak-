@@ -75,6 +75,7 @@ install: libdir_install
 libdir_install: $(SOURCES:.c=.$(EXTENSION))
 	install -d $(objectsdir)/
 	install -m644 -p $(SOURCES:.c=.$(EXTENSION)) $(objectsdir)
+	install -m644 -p $(SOURCES:%.c=%-help.pd) $(objectsdir)
 
 clean:
 	-rm -f -- $(SOURCES:.c=.o)
